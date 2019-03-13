@@ -1,19 +1,25 @@
 # Aggregert info
-players <- summaryData$elements[,c("id", 
+players <- summaryData$elements
+### joiner inn lag og posisjon
+players <- players %>% left_join(summaryData$teams[,c("id", "name")], by =c("team" = "id"))
+players <- players %>% left_join(summaryData$element_types[,c("id", "singular_name")], by =c("element_type" = "id"))
+
+players <- players %>% select(     "id",
                                    "first_name", 
                                    "second_name",
+                                   "name",
+                                   "singular_name",
                                    "form",  
                                    "selected_by_percent", 
+                                   "total_points",
                                    "goals_scored", 
                                    "assists",
                                    "clean_sheets",
                                    "transfers_in_event", 
                                    "transfers_out_event", 
-                                   "total_points", 
                                    "event_points", 
                                    "points_per_game",
                                    "goals_conceded", 
-                                   "own_goals", 
                                    "yellow_cards", 
                                    "red_cards", 
                                    "saves",
@@ -32,10 +38,5 @@ players <- summaryData$elements[,c("id",
                                    "chance_of_playing_this_round", 
                                    "in_dreamteam", 
                                    "dreamteam_count",
-                                   "minutes",
-                                   "team",
-                                   "element_type"
-)]
-### joiner inn lag og posisjon
-players <- players %>% left_join(summaryData$teams[,c("id", "name")], by =c("team" = "id"))
-players <- players %>% left_join(summaryData$element_types[,c("id", "singular_name")], by =c("element_type" = "id"))
+                                   "minutes"
+) %>% mutate(selected_by_percent = as.numeric(selected_by_percent))
