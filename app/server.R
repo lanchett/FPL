@@ -1,39 +1,24 @@
-#
-# This is the server logic of a Shiny web application. You can run the 
-# application by clicking 'Run App' above.
-#
-# Find out more about building applications with Shiny here:
-# 
-#    http://shiny.rstudio.com/
-#
+source("../data/1.0summary.R")
+source("../data/2.0players.R")
+source("../players/2.1playerInfo.R")
 
-library(shiny)
-library(jsonlite)
-library(dplyr)
-library(DT)
-source("../data/summary.R")
-source("../data/01players.R")
-source("../players/playerInfo.R")
-
-# Define server logic required to draw a histogram
 shinyServer(function(input, output) {
   
-  output$playerSummary <- DT::renderDT(
+  output$summaryPlayers <- DT::renderDT(
    
-    datatable(players) %>% formatStyle(
+   DT::formatStyle( table =  DT::datatable(summaryPlayers, options = list(pageLength=10)),
     'selected_by_percent',
-    background = styleColorBar(range(players[,"selected_by_percent"]), 'lightblue'),
+    background = DT::styleColorBar(range(summaryPlayers[,"selected_by_percent"]), 'lightblue'),
     backgroundSize = '98% 88%',
     backgroundRepeat = 'no-repeat',
-    backgroundPosition = 'center'),
-  
-  options = list(pageLength=10)
+    backgroundPosition = 'center',
+    'text-align' = 'right')
   )
     
   
    output$playerInfoHistoryCurrent <- DT::renderDT({
   
-     playerData <- playerInfo( players[input$playerSummary_rows_selected,"id"])
+     playerData <- playerInfo( summaryPlayers[input$summaryPlayers_rows_selected,"id"])
      
      playerInfoHistoryCurrent(playerData)
   
@@ -41,19 +26,20 @@ shinyServer(function(input, output) {
    })
    output$playerInfoHistoryPrevious <- DT::renderDT({
      
-     playerData <- playerInfo( players[input$playerSummary_rows_selected,"id"])
+     playerData <- playerInfo( summaryPlayers[input$summaryPlayers_rows_selected,"id"])
      
      playerInfoHistoryPrevious(playerData)
      
    })
    output$playerInfoFixturesUpcoming <- DT::renderDT({
      
-     playerData <- playerInfo( players[input$playerSummary_rows_selected,"id"])
+     playerData <- playerInfo( summaryPlayers[input$summaryPlayers_rows_selected,"id"])
      
      playerInfoFixturesUpcoming <-  playerInfoFixturesUpcoming(playerData)
-     datatable(playerInfoFixturesUpcoming) %>% formatStyle(
+     
+     DT::formatStyle(table =  DT::datatable(playerInfoFixturesUpcoming), 
        'difficulty',
-       backgroundColor = styleInterval(c(2,3), c('green', 'yellow', 'red'))
+       backgroundColor = DT::styleInterval(c(2,3), c('green', 'yellow', 'red'))
      )
      
    })

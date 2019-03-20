@@ -1,0 +1,7 @@
+docker build -t lanchett/fplshiny:v2 . 
+docker images
+docker run --rm --name Shiny --user shiny -p 80:3838 lanchett/fplshiny:v2 
+docker ps
+docker kill Shiny
+
+

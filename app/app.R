@@ -1,0 +1,5 @@
+library(curl)
+library(DT)
+library(dplyr)
+library(jsonlite)
+shinyApp(ui, server)

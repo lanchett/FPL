@@ -1,17 +1,12 @@
 
-# Info per spiller --------------------------------------------------------
 
-## Hent data
-playerInfo <- function(id = 4){
-  playerData <- fromJSON(paste0("https://fantasy.premierleague.com/drf/element-summary/",id))
-  
-}
+# Info per spiller --------------------------------------------------------
 
 ## Historiske kamper inneværende sesong 
 playerInfoHistoryCurrent <- function(playerData){
-  playerInfoHistoryCurrent <- data.frame(playerData$history)
-  playerInfoHistoryCurrent %>% select(
-    "selected", 
+  playerInfoHistoryCurrent <- lapply(playerData, `[[`, "history")
+  playerInfoHistoryCurrent <- data.table::rbindlist(playerInfoHistoryCurrent)
+  playerInfoHistoryCurrent <- dplyr::select( playerInfoHistoryCurrent, c("selected", 
     "kickoff_time_formatted", 
     "team_h_score", 
     "team_a_score", 
@@ -50,13 +45,15 @@ playerInfoHistoryCurrent <- function(playerData){
     "fouls",
     "dribbles"
   )
+  )
   
 }
 
 ## Historiske sesonger  
 playerInfoHistoryPrevious <- function(playerData){
-  playerInfoHistoryPrevious <- data.frame(playerData$history_past)
-  playerInfoHistoryPrevious %>% select( "season_name",
+  playerInfoHistoryPrevious <- lapply(playerData, `[[`, "history_past")
+  playerInfoHistoryPrevious <- data.table::rbindlist(playerInfoHistoryPrevious)
+  playerInfoHistoryPrevious <- dplyr::select(playerInfoHistoryPrevious,  c("season_name",
                                         "start_cost",
                                         "end_cost",
                                         "total_points",
@@ -78,17 +75,19 @@ playerInfoHistoryPrevious <- function(playerData){
                                         "threat",
                                         "ict_index"
                                         )
-  
+  )
 }
 
 ## Kommende kamper
 playerInfoFixturesUpcoming <- function(playerData){
-  playerInfoFixturesUpcoming <- data.frame(playerData$fixtures)
-  playerInfoFixturesUpcoming %>% select( "kickoff_time_formatted",
+  playerInfoFixturesUpcoming <- lapply(playerData, `[[`, "fixtures")
+  playerInfoFixturesUpcoming <- data.table::rbindlist(playerInfoFixturesUpcoming)
+  playerInfoFixturesUpcoming <- dplyr::select(playerInfoFixturesUpcoming, c("kickoff_time_formatted",
                                          "event_name",
                                          "opponent_name",
                                          "is_home",
                                          "difficulty")
+  )
   
 }
 
