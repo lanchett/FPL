@@ -1,8 +1,7 @@
 
+# Information on players --------------------------------------------------
 
-# Info per spiller --------------------------------------------------------
-
-## Historiske kamper inneværende sesong 
+## Fixtures current season
 playerInfoHistoryCurrent <- function(playerData){
   playerInfoHistoryCurrent <- lapply(playerData, `[[`, "history")
   playerInfoHistoryCurrent <- data.table::rbindlist(playerInfoHistoryCurrent)
@@ -49,7 +48,7 @@ playerInfoHistoryCurrent <- function(playerData){
   
 }
 
-## Historiske sesonger  
+## Previous seasons  
 playerInfoHistoryPrevious <- function(playerData){
   playerInfoHistoryPrevious <- lapply(playerData, `[[`, "history_past")
   playerInfoHistoryPrevious <- data.table::rbindlist(playerInfoHistoryPrevious)
@@ -78,7 +77,7 @@ playerInfoHistoryPrevious <- function(playerData){
   )
 }
 
-## Kommende kamper
+## Upcoming fixtures
 playerInfoFixturesUpcoming <- function(playerData){
   playerInfoFixturesUpcoming <- lapply(playerData, `[[`, "fixtures")
   playerInfoFixturesUpcoming <- data.table::rbindlist(playerInfoFixturesUpcoming)
