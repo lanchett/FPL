@@ -4,11 +4,13 @@ library(dplyr)
 library(jsonlite)
 library(lpSolve)
 library(plotly)
+library(FPL)
 
-source("../data/1.0summary.R")
-source("../data/2.0players.R")
-source("../data/3.0upcomingFixtures.R")
-source("../players/2.1playerInfo.R")
-source("../optimizer/optimalTeam.R")
+data_players_fixtures_teams <- transform_data()
+team_data <- data_players_fixtures_teams %>%  pluck("team_data")
+upcoming_fixtures <-
+  data_players_fixtures_teams %>% pluck("upcoming_fixtures")
+player_data <- data_players_fixtures_teams %>% pluck("player_data")
+
 
 shinyApp(ui, server)

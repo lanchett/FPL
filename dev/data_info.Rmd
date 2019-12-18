@@ -1,0 +1,160 @@
+---
+title: "FPL - data prep"
+author: "Thomas Langeland"
+date: "18 12 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(DT)
+library(dplyr)
+library(tidyr)
+library(purrr)
+library(FPL)
+```
+
+Jeg har bygget en pakke i R (som heter **FPL**) som henter ut og bearbeider data som anvendes for visualisering og analyse.
+Som en del av denne pakken inngår testing av API, slik at eventuelle endringer raskt fanges opp.
+
+I dokumentet her illustrerer jeg hvordan jeg henter ut data, samt ulike prosesseringssteg for å få data på ønsket format. 
+Data er funnet ved utviklerverktøy i Chrome (CTRL+Shift+I). 
+
+## Datakilder
+
+Henter data om lag, spillere og ulike gameweeks her <https://fantasy.premierleague.com/api/bootstrap-static/>.
+Dette inkluderer:
+- events. Denne tabellen inneholder high-level informasjon om hver enkelt gameweek (chips brukt, deadlines, scorer, kapteiner etc.).
+- game_settings. Denne tabellen inneholder informasjon om spillets regler.
+- phases. Denne tabellen inneholder informasjon om hvilke gameweeks som tilhører ulike måneder.
+- teams. Denne tabellen inneholder informasjon om de ulike lagene i FPL (e.g. styrke hjemme/borte, forkortet navn etc).
+- elements. Denne tabellen inneholder informasjon om hver enkelt spiller i FPL, på et aggregert nivå. Dette er stillbilde av dagens situasjon
+- element_stats. Denne tabellen inneholder mapping av kolonnenavn til elements, og kan brukes til å formatere/endre kolonnenavn i elements. 
+- element_types. Denne tabellen inneholder informasjon om posisjonen til hver enkelt spiller, og hvor mange spillere du må ha i denne posisjonen. Dette kan f.eks. brukes til optimering av spillerlogistikk. 
+
+Henter informasjon om kommende kamper her <https://fantasy.premierleague.com/api/fixtures>
+Dette er nyttig data å koble mot teams fra bootstrap-APIet. 
+
+Henter spesifikk informasjon per spiller her:
+<https://fantasy.premierleague.com/api/element-summary/[spillerId]/>
+Dette inkluderer:
+- history. Oversikt over hver enkelt kamp inneværende sesong for en gitt spiller (detaljert). 
+- history_past. Oversikt over hvordan en gitt spiller har gjort det tidligere sesonger (aggregert.)
+- fixtures. Oversikt over kommende kamper for en gitt spiller. 
+
+Henter logoer her:
+<https://fantasy.premierleague.com/dist/img/badges/badge_[lagkode]_40.png>
+
+Lenke til den enkelte deltaker:
+<https://fantasy.premierleague.com/entry/[deltakerID]/event/[gameweek]>
+
+Lenke til den enkelte deltaker sine valg for en gameweek:
+<https://fantasy.premierleague.com/api/entry/[deltakerID]/event/[gameweek]/picks/>
+
+### load_data()
+Funksjonen *load_data* henter all data jeg ønsker fra de nevnte APIer, og samler dette i en liste.
+
+```{r loaded_data}
+loaded_data <- FPL::load_data(players_teams_data_link = "https://fantasy.premierleague.com/api/bootstrap-static/",
+                      upcoming_fixtures_link = "https://fantasy.premierleague.com/api/fixtures")
+```
+
+### transform_data()
+Videre anvendes funksjonen *transform_data* for å transformere datasettene jeg ønsker, og samler disse i en liste
+```{r transformed data}
+data_players_fixtures_teams <- FPL::transform_data(loaded_data = loaded_data, link_users = "https://fantasy.premierleague.com/entry/")
+```
+
+### data om ulike lag
+```{r lag_data}
+team_data <- data_players_fixtures_teams %>%  pluck("team_data") 
+DT::datatable(team_data)
+```
+
+### data om ulike spillere
+```{r spiller_data}
+player_data <- data_players_fixtures_teams %>%  pluck("player_data")
+DT::datatable(player_data)
+```
+
+### data om kommende kamper
+```{r kamper_data}
+upcoming_fixtures <- data_players_fixtures_teams %>%  pluck("upcoming_fixtures")
+DT::datatable(upcoming_fixtures)
+```
+
+### gameweek data
+
+```{r gw_data}
+gameweek_data <-
+    loaded_data %>%  pluck("players_teams_data") %>% FPL::gameweek_functions(players_teams_data = ., link_users = "https://fantasy.premierleague.com/entry/")
+
+DT::datatable(gameweek_data)
+``` 
+
+### detaljerte spillerdata - current
+```{r detaljert_spiller_data_curr, eval=FALSE, include=FALSE}
+player_info <- FPL::player_info_detailed(id = unique(player_data$id), link = "https://fantasy.premierleague.com/api/element-summary/")
+
+player_info_fixtures_current <-
+  FPL::player_info_detailed_fixtures_current(player_info)
+
+DT::datatable(player_info_fixtures_current %>%  head())
+
+```
+
+### detaljerte spillerdata - previous
+```{r detaljert_spiller_data_prev, eval=FALSE, include=FALSE}
+
+player_info_fixtures_previous <-
+  FPL::player_info_detailed_fixtures_previous(player_info)
+
+DT::datatable(player_info_fixtures_previous %>%  head())
+
+
+```
+
+### detaljerte spillerdata - upcoming
+```{r detaljert_spiller_data_upcoming, eval=FALSE, include=FALSE}
+
+player_info_fixtures_upcoming <-
+  FPL::player_info_detailed_fixtures_upcoming(player_info)
+
+DT::datatable(player_info_fixtures_upcoming %>%  head())
+
+```
+
+### detaljerte deltaker data
+```{r deltaker_data, eval=FALSE, include=FALSE}
+contender_info <- contender_info_detailed(id_contender = c(2045023),id_gameweek = c(1), link = "https://fantasy.premierleague.com/api/entry/")
+
+contender_info_picks <- contender_info_detailed_picks(contender_info = contender_info)
+
+DT::datatable(contender_info_picks)
+``` 
+
+```{r deltaker_data_status, eval=FALSE, include=FALSE}
+
+contender_info_status <- contender_info_detailed_status(contender_info = contender_info)
+
+DT::datatable(contender_info_status)
+
+
+``` 
+
+
+## eksporterer data som anvendes til visualisering i Power BI
+
+```{r pressure, echo=FALSE}
+readr::write_csv2(path = "gameweek_data.csv",x = gameweek_data)
+readr::write_csv2(path =  "team_data.csv",x = team_data)
+readr::write_csv2(path =  "player_data.csv",x = player_data)
+readr::write_csv2(path =  "upcoming_fixtures.csv", x = upcoming_fixtures)
+# readr::write_csv(path =  "player_info_fixtures_current.csv",x = player_info_fixtures_current)
+# readr::write_csv(path =  "player_info_fixtures_previous.csv",x = player_info_fixtures_previous)
+# readr::write_csv(path =  "player_info_fixtures_upcoming.csv",x = player_info_fixtures_upcoming)
+# readr::write_csv(path =  "contender_info_status.csv",x = contender_info_status)
+# readr::write_csv(path =  "contender_info_picks.csv",x = contender_info_picks)
+```
+
+

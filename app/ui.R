@@ -1,8 +1,3 @@
-source("../data/1.0summary.R")
-source("../data/2.0players.R")
-source("../data/3.0upcomingFixtures.R")
-source("../players/2.1playerInfo.R")
-source("../optimizer/optimalTeam.R")
 
 shinyUI(
   navbarPage(
@@ -14,32 +9,32 @@ shinyUI(
       selectInput(
         "select",
         "Select columns to display",
-        names(summaryPlayers),
+        names(player_data),
         multiple = TRUE
       ),
       h2('Summary of all players'),
       h4('Aggregated performance this season'),
-      DT::DTOutput("summaryPlayers")
+      DT::DTOutput("player_data")
     ),
     tabPanel(
       "This Season",
       icon = icon("shoe-prints"),
       h2('Game-by-game'),
       h4('Performance for selected players this season'),
-      DT::DTOutput("playerInfoHistoryCurrent")
+      DT::DTOutput("player_info_history_current")
     ),
     tabPanel(
       "Previous Seasons",
       icon = icon("history"),
       h2('Aggregated performance previous seasons'),
       h4('Performance for selected players previous seasons'),
-      DT::DTOutput("playerInfoHistoryPrevious")
+      DT::DTOutput("player_info_history_previous")
     ),
     tabPanel(
       "Upcoming Fixtures",
       icon = icon("calendar"),
       h4('Upcoming fixtures for all teams'),
-      plotly::plotlyOutput("playerInfoFixturesUpcoming")
+      plotly::plotlyOutput("upcoming_fixtures")
     ),
     tabPanel(
       "Optimal Team",
@@ -61,7 +56,7 @@ shinyUI(
         max = 5
       ),
       numericInput("Forwards", "Forwards:", 3, min = 1, max = 3),
-      DT::DTOutput("optimalTeam")
+      DT::DTOutput("optimal_team")
     )
   )
 )
