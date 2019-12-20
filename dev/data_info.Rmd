@@ -1,7 +1,7 @@
 ---
 title: "FPL - data prep"
 author: "Thomas Langeland"
-date: "18 12 2019"
+date: "19 12 2019"
 output: html_document
 ---
 
@@ -24,6 +24,7 @@ Data er funnet ved utviklerverktøy i Chrome (CTRL+Shift+I).
 
 Henter data om lag, spillere og ulike gameweeks her <https://fantasy.premierleague.com/api/bootstrap-static/>.
 Dette inkluderer:
+
 - events. Denne tabellen inneholder high-level informasjon om hver enkelt gameweek (chips brukt, deadlines, scorer, kapteiner etc.).
 - game_settings. Denne tabellen inneholder informasjon om spillets regler.
 - phases. Denne tabellen inneholder informasjon om hvilke gameweeks som tilhører ulike måneder.
@@ -38,6 +39,7 @@ Dette er nyttig data å koble mot teams fra bootstrap-APIet.
 Henter spesifikk informasjon per spiller her:
 <https://fantasy.premierleague.com/api/element-summary/[spillerId]/>
 Dette inkluderer:
+
 - history. Oversikt over hver enkelt kamp inneværende sesong for en gitt spiller (detaljert). 
 - history_past. Oversikt over hvordan en gitt spiller har gjort det tidligere sesonger (aggregert.)
 - fixtures. Oversikt over kommende kamper for en gitt spiller. 
@@ -50,6 +52,9 @@ Lenke til den enkelte deltaker:
 
 Lenke til den enkelte deltaker sine valg for en gameweek:
 <https://fantasy.premierleague.com/api/entry/[deltakerID]/event/[gameweek]/picks/>
+
+
+## Henter og laster data {.tabset .tabset-fade .tabset-pills}
 
 ### load_data()
 Funksjonen *load_data* henter all data jeg ønsker fra de nevnte APIer, og samler dette i en liste.
@@ -92,9 +97,18 @@ gameweek_data <-
 DT::datatable(gameweek_data)
 ``` 
 
+## Detaljerte Data {.tabset .tabset-fade .tabset-pills}
+Følgende faner viser detaljerte data for spillere og deltakere. 
+For spillere kan vi hente informasjon om hver enkelt gameweek i inneværende sesong, kommende kamper, samt aggregerte resultater for tidligere sesonger. 
+
+For deltakere kan vi hente informasjon om valg de har gjort hver enkelt gameweek i år, samt status i dag (rangering, chips etc.)
+
+De følgende eksemplene viser hvordan dette kan se ut for 1 spiller og 1 deltaker. 
+
 ### detaljerte spillerdata - current
-```{r detaljert_spiller_data_curr, eval=FALSE, include=FALSE}
-player_info <- FPL::player_info_detailed(id = unique(player_data$id), link = "https://fantasy.premierleague.com/api/element-summary/")
+```{r detaljert_spiller_data_curr, echo=TRUE}
+# player_info <- FPL::player_info_detailed(id = unique(player_data$id), link = "https://fantasy.premierleague.com/api/element-summary/")
+player_info <- FPL::player_info_detailed(id =   c(5, 50), link = "https://fantasy.premierleague.com/api/element-summary/")
 
 player_info_fixtures_current <-
   FPL::player_info_detailed_fixtures_current(player_info)
@@ -104,7 +118,7 @@ DT::datatable(player_info_fixtures_current %>%  head())
 ```
 
 ### detaljerte spillerdata - previous
-```{r detaljert_spiller_data_prev, eval=FALSE, include=FALSE}
+```{r detaljert_spiller_data_prev, echo=TRUE}
 
 player_info_fixtures_previous <-
   FPL::player_info_detailed_fixtures_previous(player_info)
@@ -115,7 +129,7 @@ DT::datatable(player_info_fixtures_previous %>%  head())
 ```
 
 ### detaljerte spillerdata - upcoming
-```{r detaljert_spiller_data_upcoming, eval=FALSE, include=FALSE}
+```{r detaljert_spiller_data_upcoming, echo=TRUE}
 
 player_info_fixtures_upcoming <-
   FPL::player_info_detailed_fixtures_upcoming(player_info)
@@ -124,8 +138,8 @@ DT::datatable(player_info_fixtures_upcoming %>%  head())
 
 ```
 
-### detaljerte deltaker data
-```{r deltaker_data, eval=FALSE, include=FALSE}
+### detaljerte deltaker data - valg
+```{r deltaker_data, echo=TRUE}
 contender_info <- contender_info_detailed(id_contender = c(2045023),id_gameweek = c(1), link = "https://fantasy.premierleague.com/api/entry/")
 
 contender_info_picks <- contender_info_detailed_picks(contender_info = contender_info)
@@ -133,7 +147,8 @@ contender_info_picks <- contender_info_detailed_picks(contender_info = contender
 DT::datatable(contender_info_picks)
 ``` 
 
-```{r deltaker_data_status, eval=FALSE, include=FALSE}
+### detaljerte deltaker data - status
+```{r deltaker_data_status, echo=TRUE}
 
 contender_info_status <- contender_info_detailed_status(contender_info = contender_info)
 
@@ -143,18 +158,21 @@ DT::datatable(contender_info_status)
 ``` 
 
 
-## eksporterer data som anvendes til visualisering i Power BI
+## Eksporterer data som anvendes til visualisering i Power BI
+Resterende steg er gjort i Power BI.
+Her har jeg bygget et dashboard som hjelper til med å finne fornuftige spillerkjøp.
+Jeg har også bygget et dashboard i R Shiny, hvor det er mulig å optimalisere laget.
 
-```{r pressure, echo=FALSE}
+```{r pressure, echo= TRUE}
 readr::write_csv2(path = "gameweek_data.csv",x = gameweek_data)
 readr::write_csv2(path =  "team_data.csv",x = team_data)
 readr::write_csv2(path =  "player_data.csv",x = player_data)
 readr::write_csv2(path =  "upcoming_fixtures.csv", x = upcoming_fixtures)
-# readr::write_csv(path =  "player_info_fixtures_current.csv",x = player_info_fixtures_current)
-# readr::write_csv(path =  "player_info_fixtures_previous.csv",x = player_info_fixtures_previous)
-# readr::write_csv(path =  "player_info_fixtures_upcoming.csv",x = player_info_fixtures_upcoming)
-# readr::write_csv(path =  "contender_info_status.csv",x = contender_info_status)
-# readr::write_csv(path =  "contender_info_picks.csv",x = contender_info_picks)
+readr::write_csv(path =  "player_info_fixtures_current.csv",x = player_info_fixtures_current)
+readr::write_csv(path =  "player_info_fixtures_previous.csv",x = player_info_fixtures_previous)
+readr::write_csv(path =  "player_info_fixtures_upcoming.csv",x = player_info_fixtures_upcoming)
+readr::write_csv(path =  "contender_info_status.csv",x = contender_info_status)
+readr::write_csv(path =  "contender_info_picks.csv",x = contender_info_picks)
 ```
 
 

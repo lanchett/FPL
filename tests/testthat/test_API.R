@@ -1,5 +1,6 @@
 library(testthat)
 library(dplyr)
+library(purrr)
 
 context("Test loading of data from API")
 

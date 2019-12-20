@@ -4,3 +4,5 @@
 .Ruserdata
 .html
 .azcli
+dev/*.xlsx
+dev/*.csv
