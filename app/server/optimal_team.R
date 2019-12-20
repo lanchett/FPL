@@ -15,13 +15,13 @@ optimal_team <-
   filter(solution == 1) %>%
   select(
     second_name,
-    element_type,
+    id_position,
     now_cost,
     total_points,
     selected_by_percent,
     ep_next,
     points_per_game
   ) %>%
-  arrange(element_type)
+  arrange(id_position)
 
 DT::datatable(optimal_team, options = list(pageLength = 15))

@@ -7,10 +7,10 @@ optimal_team <- function (summaryPlayers, objective = summaryPlayers$total_point
   df <- summaryPlayers
 
   # Create vectors to constrain by position
-  df$Goalkeeper <- ifelse(df$element_type == "1", 1, 0)
-  df$Defender <- ifelse(df$element_type == "2", 1, 0)
-  df$Midfielder <- ifelse(df$element_type == "3", 1, 0)
-  df$Forward <- ifelse(df$element_type == "4", 1, 0)
+  df$Goalkeeper <- ifelse(df$id_position == "1", 1, 0)
+  df$Defender <- ifelse(df$id_position == "2", 1, 0)
+  df$Midfielder <- ifelse(df$id_position == "3", 1, 0)
+  df$Forward <- ifelse(df$id_position == "4", 1, 0)
 
   # Create constraint vectors (indicator 0/1) to see which team a player is playing for
   team_constraint <- unlist(lapply(unique(df$team_code), function(x, df) {
