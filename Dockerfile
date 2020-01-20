@@ -1,20 +1,20 @@
-FROM rocker/shiny:3.5.1
+FROM rocker/r-base
+MAINTAINER Jeff Allen <docker@trestletech.com>
 
-RUN apt-get update && apt-get install libcurl4-openssl-dev libv8-3.14-dev -y &&\
-    mkdir -p /var/lib/shiny-server/bookmarks/shiny
+RUN apt-get update -qq && apt-get install -y \
+  git-core \
+  libssl-dev \
+  libcurl4-gnutls-dev
 
-# Download and install library
-RUN R -e "install.packages(c('shinydashboard', 'shinyjs', 'V8','DT', 'dplyr', 'jsonlite'))"
+RUN R -e 'install.packages(c("devtools", "dplyr", "purrr", "jsonlite"))'
+RUN R -e 'devtools::install_github("lanchett/FPL")'
+RUN install2.r plumber
 
-# copy the app to the image
-COPY app /root/app
-COPY Rprofile.site /usr/local/lib/R/etc/Rprofile.site
+# copy everything from the current directory into the container
+COPY / /
 
-# make all app files readable (solves issue when dev in Windows, but building in Ubuntu)
-RUN chmod -R 755 /root/app
-RUN chmod -R 755 /usr/local/lib/R/etc
+EXPOSE 8000
 
-EXPOSE 3838
-
-CMD ["R", "-e", "shiny::runApp('/root/app')"]
+# when the container starts, start the Main.R script
+ENTRYPOINT ["Rscript", "plumber/run_plumber.R"]
 
